@@ -26,9 +26,9 @@ char *file_name = NULL;
 
 
 
-void initCache(){
-    set_number = pow(2,set_bits);
-    block_size = pow(2,block_bits);
+void initCache(void){
+    set_number = 1 << set_bits;
+    block_size = 1 << block_bits;
 
 }
 
@@ -62,7 +62,7 @@ int process_trace_file(const char *trace){
 /**
  * @brief print help message
 */
-void printHelp(){
+void printHelp(void){
     printf("Mandatory arguments missing or zero.\n");
     printf("Usage: ./csim [-v] -s <s> -b <b> -E <E> -t <trace>\n");
     printf("       ./csim -h\n");
