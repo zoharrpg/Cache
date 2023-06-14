@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <string.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 unsigned int LINELEN = 21;
 
@@ -15,6 +16,14 @@ typedef struct{
 }cache_line;
 
 cache_line** cache;
+
+long set_numbe = -1;
+long block_size = -1;
+long associativity =-1;
+long set_bits =-1;
+long block_bits = -1;
+char *file_name = NULL;
+
 
 
 initCache(){
@@ -73,36 +82,51 @@ int main(int argc, char**argv[]){
     while((opt = getopt(argc, argv,"vhs:E:b:t:"))!=-1){
         switch (opt){
             case 'v':
+                printf("This is v mode");
             
-            break;
+                break;
 
             case 'h':
-            break;
+                printHelp();
+                break;
 
             case 's':
-            break;
+                set_bits = strtoul(optarg,NULL,10);
+                break;
 
             case 'E':
-            break;
+                associativity = strtoul(optarg,NULL,10);
+                break;
 
             case 'b':
-            break;
+                block_bits = strtoul(optarg,NULL,10);
+
+                break;
             
             case 't':
-            break;
+                file_name = optarg;
+                break;
 
             case ':':
-            break;
+                printf("This is : option\n");
+                printHelp();
+                break;
 
             case '?':
-            break;
+                printf("This is ? option\n");
+                printHelp();
+
+                break;
 
             
             default:
+                printf("This is defalut\n");
+                printHelp();
 
-            break;
+                break;
         }
     }
+    
     
     
     return 0;
