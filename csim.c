@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-unsigned int LINELEN = 21;
+int LINELEN = 21;
 
 typedef struct{
     bool dirty;
@@ -17,16 +17,18 @@ typedef struct{
 
 cache_line** cache;
 
-long set_numbe = -1;
-long block_size = -1;
-long associativity =-1;
-long set_bits =-1;
-long block_bits = -1;
+unsigned long set_number;
+unsigned long block_size ;
+unsigned long associativity;
+unsigned long set_bits;
+unsigned long block_bits;
 char *file_name = NULL;
 
 
 
-initCache(){
+void initCache(){
+    set_number = pow(2,set_bits);
+    block_size = pow(2,block_bits);
 
 }
 
@@ -79,7 +81,7 @@ void printHelp(){
  * 
  * @param [in] argv Command Line argument,  [-v] -s <s> -E <E> -b <b> -t <trace>
 */
-int main(int argc, char**argv[]){
+int main(int argc, char*argv[]){
     int opt;
 
     while((opt = getopt(argc, argv,"vhs:E:b:t:"))!=-1){
