@@ -3,8 +3,23 @@
 #include <getopt.h>
 #include <errno.h>
 #include <string.h>
+#include <stdbool.h>
 
 unsigned int LINELEN = 20;
+
+typedef struct{
+    bool dirty;
+    unsigned long tag;
+    int count;
+
+}cache_line;
+
+cache_line** cache;
+
+
+initCache(){
+
+}
 
 /** Process a memory-access trace file.
  * 
@@ -22,6 +37,7 @@ int process_trace_file(const char *trace){
     char linebuf[LINELEN];
     int parse_error = 0;
     while (fgets(linebuf, LINELEN,tfp)){
+
 
     }
     fclose(tfp);
