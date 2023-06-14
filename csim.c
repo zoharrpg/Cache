@@ -57,6 +57,9 @@ int process_trace_file(const char *trace){
 
 }
 
+/**
+ * @brief print help message
+*/
 void printHelp(){
     printf("Mandatory arguments missing or zero.\n");
     printf("Usage: ./csim [-v] -s <s> -b <b> -E <E> -t <trace>\n");
@@ -126,7 +129,7 @@ int main(int argc, char**argv[]){
                 break;
         }
     }
-    
+
     
     
     return 0;
