@@ -5,7 +5,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-unsigned int LINELEN = 20;
+unsigned int LINELEN = 21;
 
 typedef struct{
     bool dirty;
