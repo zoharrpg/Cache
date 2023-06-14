@@ -4,7 +4,33 @@
 #include <errno.h>
 #include <string.h>
 
+unsigned int LINELEN = 20;
 
+/** Process a memory-access trace file.
+ * 
+ * @param trace Name of the trace file to process
+ * @return 0 if successful, 1 if there were error
+*/
+int process_trace_file(const char *trace){
+    
+    FILE *tfp = fopen(trace,"rt");
+    if(!tfp){
+        fprintf(stderr,"Error opening '%s': %s\n",
+                trace,strerror(errno));
+        return 1;
+    }
+    char linebuf[LINELEN];
+    int parse_error = 0;
+    while (fgets(linebuf, LINELEN,tfp)){
+
+    }
+    fclose(tfp);
+    return parse_error;
+
+
+
+
+}
 
 void printHelp(){
     printf("Mandatory arguments missing or zero.\n");
