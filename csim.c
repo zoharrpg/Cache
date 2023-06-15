@@ -11,7 +11,7 @@
 #define LINELEN  21
 
 typedef struct{
-    bool dirty;
+    bool valid;
     unsigned long tag;
     int count;
 
@@ -61,7 +61,7 @@ void initCache(void){
     for (unsigned long i=0;i<set_number;i++){
         cache[i] = malloc(associativity * sizeof(cache_line));
         for (unsigned long j=0;j<associativity;j++){
-            cache[i][j].dirty=false;
+            cache[i][j].valid=false;
             cache[i][j].tag = 0;
             cache[i][j].count = 0;
         }
