@@ -11,7 +11,7 @@
 
 typedef struct{
     bool dirty;
-    unsigned long tag;
+    long tag;
     int count;
 
 }cache_line;
@@ -27,10 +27,23 @@ unsigned long block_bits;
 char *file_name = NULL;
 
 
-
+/**
+ * Initialize Cache
+*/
 void initCache(void){
     set_number = 1 << set_bits;
     block_size = 1 << block_bits;
+
+    cache = malloc(set_number*sizeof(cache_line*));
+
+    for (unsigned long i=0;i<set_number;i++){
+        cache[i] = malloc(associativity * sizeof(cache_line));
+        for (unsigned long j=0;j<associativity;j++){
+            cache[i][j].dirty=false;
+            cache[i][j].tag = -1;
+            cache[i][j].count = 0;
+        }
+    }
     
 
 
