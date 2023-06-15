@@ -12,6 +12,7 @@
 
 typedef struct{
     bool valid;
+    bool dirty;
     unsigned long tag;
     int count;
 
@@ -61,9 +62,10 @@ void initCache(void){
     for (unsigned long i=0;i<set_number;i++){
         cache[i] = malloc(associativity * sizeof(cache_line));
         for (unsigned long j=0;j<associativity;j++){
-            cache[i][j].valid=false;
+            cache[i][j].valid=true;
             cache[i][j].tag = 0;
             cache[i][j].count = 0;
+            cache[i][j].dirty=false;
         }
     }
 
@@ -85,11 +87,15 @@ void freeCache(void){
     free(cache);
 
 }
-
+/**
+ * @brief access data and do the statistics
+*/
 void processData(unsigned long address){
     unsigned long tag = address >> (set_bits+block_bits);
 
     unsigned setIndex = (address >> block_bits) &  ((1<<set_bits)-1);
+
+    
     
     
 
