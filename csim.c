@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include "cachelab.h"
+#include <limits.h>
 
 #define DECIMAL_BASE 10
 #define LINELEN  21
@@ -33,6 +34,11 @@ csim_stats_t *stats;
 bool is_v_mode = false;
 
 unsigned long LRU_timer=0;
+
+bool is_in_range(unsigned long blocks[],unsigned long element){
+    return ((blocks[0] <= element) && (element < blocks[1]));
+
+}
 
 /**
  * @brief Initialize statistics
@@ -96,18 +102,36 @@ void freeCache(void){
 /**
  * @brief access data and do the statistics
 */
-void processData(unsigned long address){
+void processData(char operation,unsigned long address,unsigned long blockIndex){
     unsigned long tag = address >> (set_bits+block_bits);
 
     unsigned setIndex = (address >> block_bits) &  ((1<<set_bits)-1);
+
+
     for (unsigned long i=0;i<associativity;i++){
 
-        if(cache[setIndex][i].valid==true && cache[setIndex][i].tag == tag){
+        if(cache[setIndex][i].valid==true && cache[setIndex][i].tag == tag && is_in_range(cache[setIndex][i].block_range,blockIndex)){
             stats->hits++;
             LRU_timer++;
             cache[setIndex][i].time = LRU_timer;
-            cache[setIndex][i].dirty = true;
-            stats->dirty_bytes++;
+
+            if(operation == 'S'){
+                cache[setIndex][i].dirty = true;
+                stats->dirty_bytes++;
+
+            }
+            else{
+                cache[setIndex][i].dirty = false;
+
+                
+
+            }
+
+            if(is_v_mode)
+                printf("hits\n");
+            
+            
+            
 
             return;
 
@@ -122,6 +146,10 @@ void processData(unsigned long address){
             LRU_timer++;
             cache[setIndex][i].time = LRU_timer;
             cache[setIndex][i].dirty = false;
+            cache[setIndex][i].block_range[0] = address;
+            cache[setIndex][i].block_range[1] = address + block_size;
+            if(is_v_mode)
+                printf("miss\n");
 
             return;
 
@@ -138,7 +166,7 @@ void processData(unsigned long address){
         }
     }
 
-    if(cache[setIndex][min_timer_index].dirty){
+    if(operation=='S'&&cache[setIndex][min_timer_index].dirty){
         stats->dirty_evictions++;
         stats->dirty_bytes--;
         cache[setIndex][min_timer_index].dirty=false;
@@ -150,6 +178,21 @@ void processData(unsigned long address){
     cache[setIndex][min_timer_index].valid = true;
     LRU_timer++;
     cache[setIndex][min_timer_index].time = LRU_timer;
+    cache[setIndex][min_timer_index].block_range[0] = address;
+    
+    if((LONG_MAX-address)<block_size){
+        cache[setIndex][min_timer_index].block_range[1] = LONG_MAX;
+
+    }
+    else{
+         cache[setIndex][min_timer_index].block_range[1] = address + block_size;
+
+    }
+   
+    stats->evictions++;
+
+    if(is_v_mode)
+                printf("eviction\n");
 
 
 
@@ -177,9 +220,14 @@ int process_trace_file(const char *trace){
     char linebuf[LINELEN];
     int parse_error = 0;
     while (fgets(linebuf, LINELEN,tfp)){
-        char operation = *strtok(linebuf," ");
-        unsigned long address = strtoul(strtok(linebuf," "),NULL,DECIMAL_BASE);
-        unsigned long size = strtoul(strtok(linebuf,","),NULL,DECIMAL_BASE);
+        char operation = *strtok(linebuf," ,");
+        unsigned long address = strtoul(strtok(NULL," ,"),NULL,DECIMAL_BASE);
+        unsigned long size = strtoul(strtok(NULL," ,"),NULL,DECIMAL_BASE);
+
+        if(is_v_mode)
+                printf("%c %lu, %lu ", operation, address, size);
+
+        processData(operation,address,size);
 
 
 
@@ -221,7 +269,7 @@ int main(int argc, char*argv[]){
     while((opt = getopt(argc, argv,"vhs:E:b:t:"))!=-1){
         switch (opt){
             case 'v':
-                printf("This is v mode");
+                printf("This is v mode\n");
                 is_v_mode = true;
             
                 break;
@@ -269,6 +317,8 @@ int main(int argc, char*argv[]){
     initCache();
     initStats();
     process_trace_file(file_name);
+
+    printSummary(stats);
 
 
     freeCache();
