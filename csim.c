@@ -49,6 +49,18 @@ void initCache(void){
 
 }
 
+/**
+ * free cache memory
+*/
+void freeCache(void){
+    for (unsigned long i = 0;i<set_number;i++){
+        free(cache[i]);
+    }
+
+    free(cache);
+
+}
+
 /** Process a memory-access trace file.
  * 
  * @param trace Name of the trace file to process
@@ -152,6 +164,8 @@ int main(int argc, char*argv[]){
     }
     initCache();
     process_trace_file(file_name);
+
+    freeCache();
 
 
     
