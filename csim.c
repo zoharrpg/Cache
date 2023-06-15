@@ -11,7 +11,7 @@
 
 typedef struct{
     bool dirty;
-    long tag;
+    unsigned long tag;
     int count;
 
 }cache_line;
