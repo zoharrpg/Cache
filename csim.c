@@ -98,7 +98,7 @@ void processData(unsigned long address){
     unsigned setIndex = (address >> block_bits) &  ((1<<set_bits)-1);
     for (unsigned long i=0;i<associativity;i++){
 
-        if(cache[setIndex][i].valid==false && cache[setIndex][i].tag == tag){
+        if(cache[setIndex][i].valid==true && cache[setIndex][i].tag == tag){
             stats->hits++;
             LRU_timer++;
             cache[setIndex][i].time = LRU_timer;
