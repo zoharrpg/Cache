@@ -14,7 +14,7 @@ typedef struct{
     bool valid;
     bool dirty;
     unsigned long tag;
-    int count;
+    unsigned long time;
 
 }cache_line;
 
@@ -30,6 +30,8 @@ unsigned long block_bits;
 char *file_name = NULL;
 csim_stats_t *stats;
 bool is_v_mode = false;
+
+unsigned long LRU_timer=0;
 
 /**
  * @brief Initialize statistics
@@ -64,7 +66,7 @@ void initCache(void){
         for (unsigned long j=0;j<associativity;j++){
             cache[i][j].valid=true;
             cache[i][j].tag = 0;
-            cache[i][j].count = 0;
+            cache[i][j].time = 0;
             cache[i][j].dirty=false;
         }
     }
@@ -94,6 +96,13 @@ void processData(unsigned long address){
     unsigned long tag = address >> (set_bits+block_bits);
 
     unsigned setIndex = (address >> block_bits) &  ((1<<set_bits)-1);
+    for (unsigned long i=0;i<associativity;i++){
+
+        if(cache[setIndex][i].valid==true && cache[setIndex][i].tag == tag){
+            stats->hits++;
+
+        }
+    }
 
     
     
