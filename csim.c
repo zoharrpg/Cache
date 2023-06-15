@@ -6,7 +6,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-int LINELEN = 21;
+#define DECIMAL_BASE 10
+#define LINELEN  21
 
 typedef struct{
     bool dirty;
@@ -16,6 +17,7 @@ typedef struct{
 }cache_line;
 
 cache_line** cache;
+
 
 unsigned long set_number;
 unsigned long block_size ;
@@ -29,6 +31,8 @@ char *file_name = NULL;
 void initCache(void){
     set_number = 1 << set_bits;
     block_size = 1 << block_bits;
+    
+
 
 }
 
@@ -48,8 +52,10 @@ int process_trace_file(const char *trace){
     char linebuf[LINELEN];
     int parse_error = 0;
     while (fgets(linebuf, LINELEN,tfp)){
-
-
+        char operation = *strtok(linebuf," ");
+        unsigned long address = strtoul(strtok(linebuf," "),NULL,DECIMAL_BASE);
+        unsigned long size = strtoul(strtok(linebuf,","),NULL,DECIMAL_BASE);
+    
     }
     fclose(tfp);
     return parse_error;
@@ -96,15 +102,15 @@ int main(int argc, char*argv[]){
                 break;
 
             case 's':
-                set_bits = strtoul(optarg,NULL,10);
+                set_bits = strtoul(optarg,NULL,DECIMAL_BASE);
                 break;
 
             case 'E':
-                associativity = strtoul(optarg,NULL,10);
+                associativity = strtoul(optarg,NULL,DECIMAL_BASE);
                 break;
 
             case 'b':
-                block_bits = strtoul(optarg,NULL,10);
+                block_bits = strtoul(optarg,NULL,DECIMAL_BASE);
 
                 break;
             
@@ -131,6 +137,9 @@ int main(int argc, char*argv[]){
                 break;
         }
     }
+    initCache();
+    process_trace_file(file_name);
+
 
     
     
