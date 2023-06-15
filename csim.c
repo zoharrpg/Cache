@@ -103,6 +103,7 @@ void processData(unsigned long address){
             LRU_timer++;
             cache[setIndex][i].time = LRU_timer;
             cache[setIndex][i].dirty = true;
+            stats->dirty_bytes++;
 
             return;
 
@@ -116,13 +117,38 @@ void processData(unsigned long address){
             cache[setIndex][i].tag = tag;
             LRU_timer++;
             cache[setIndex][i].time = LRU_timer;
+            cache[setIndex][i].dirty = false;
 
             return;
 
         }
     }
 
-    
+    unsigned long min = cache[setIndex][0].time;
+    unsigned long min_timer_index = 0;
+
+    for (unsigned long i =0;i<associativity;i++){
+        if(cache[setIndex][i].time < min){
+            min = cache[setIndex][i].time;
+            min_timer_index = i;
+        }
+    }
+
+    if(cache[setIndex][min_timer_index].dirty){
+        stats->dirty_evictions++;
+        stats->dirty_bytes--;
+        cache[setIndex][min_timer_index].dirty=false;
+
+    }
+
+
+    cache[setIndex][min_timer_index].tag = tag;
+    cache[setIndex][min_timer_index].valid = true;
+    LRU_timer++;
+    cache[setIndex][min_timer_index].time = LRU_timer;
+
+
+
 
 
     
