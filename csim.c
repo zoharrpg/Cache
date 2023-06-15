@@ -15,6 +15,7 @@ typedef struct{
     bool dirty;
     unsigned long tag;
     unsigned long time;
+    unsigned long block_range [2];
 
 }cache_line;
 
@@ -58,6 +59,7 @@ void freeStats(void){
 */
 void initCache(void){
     set_number = 1 << set_bits;
+    block_size = 1 << block_bits;
 
     cache = malloc(set_number*sizeof(cache_line*));
 
@@ -68,6 +70,8 @@ void initCache(void){
             cache[i][j].tag = 0;
             cache[i][j].time = 0;
             cache[i][j].dirty=false;
+            cache[i][j].block_range[0] = 0;
+            cache[i][j].block_range[1]=0;
         }
     }
 
@@ -176,6 +180,7 @@ int process_trace_file(const char *trace){
         char operation = *strtok(linebuf," ");
         unsigned long address = strtoul(strtok(linebuf," "),NULL,DECIMAL_BASE);
         unsigned long size = strtoul(strtok(linebuf,","),NULL,DECIMAL_BASE);
+
 
 
     
