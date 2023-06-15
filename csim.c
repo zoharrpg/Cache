@@ -20,6 +20,7 @@ typedef struct{
 cache_line** cache;
 
 
+
 unsigned long set_number;
 unsigned long block_size ;
 unsigned long associativity;
@@ -27,6 +28,7 @@ unsigned long set_bits;
 unsigned long block_bits;
 char *file_name = NULL;
 csim_stats_t *stats;
+bool is_v_mode = false;
 
 /**
  * @brief Initialize statistics
@@ -53,7 +55,6 @@ void freeStats(void){
 */
 void initCache(void){
     set_number = 1 << set_bits;
-    block_size = 1 << block_bits;
 
     cache = malloc(set_number*sizeof(cache_line*));
 
@@ -65,6 +66,7 @@ void initCache(void){
             cache[i][j].count = 0;
         }
     }
+
 
 
     
@@ -84,7 +86,12 @@ void freeCache(void){
 
 }
 
-void processData(void){
+void processData(unsigned long address){
+    unsigned long tag = address >> (set_bits+block_bits);
+
+    unsigned setIndex = (address >> block_bits) &  ((1<<set_bits)-1);
+    
+    
 
 }
 
@@ -107,6 +114,8 @@ int process_trace_file(const char *trace){
         char operation = *strtok(linebuf," ");
         unsigned long address = strtoul(strtok(linebuf," "),NULL,DECIMAL_BASE);
         unsigned long size = strtoul(strtok(linebuf,","),NULL,DECIMAL_BASE);
+
+
     
     }
     fclose(tfp);
@@ -146,6 +155,7 @@ int main(int argc, char*argv[]){
         switch (opt){
             case 'v':
                 printf("This is v mode");
+                is_v_mode = true;
             
                 break;
 
