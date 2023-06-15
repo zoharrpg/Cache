@@ -64,7 +64,7 @@ void initCache(void){
     for (unsigned long i=0;i<set_number;i++){
         cache[i] = malloc(associativity * sizeof(cache_line));
         for (unsigned long j=0;j<associativity;j++){
-            cache[i][j].valid=true;
+            cache[i][j].valid=false;
             cache[i][j].tag = 0;
             cache[i][j].time = 0;
             cache[i][j].dirty=false;
@@ -98,11 +98,18 @@ void processData(unsigned long address){
     unsigned setIndex = (address >> block_bits) &  ((1<<set_bits)-1);
     for (unsigned long i=0;i<associativity;i++){
 
-        if(cache[setIndex][i].valid==true && cache[setIndex][i].tag == tag){
+        if(cache[setIndex][i].valid==false && cache[setIndex][i].tag == tag){
             stats->hits++;
+            LRU_timer++;
+            cache[setIndex][i].time = LRU_timer;
+            cache[setIndex][i].dirty = true;
+
+            return;
 
         }
     }
+    stats->misses++;
+
 
     
     
