@@ -110,6 +110,20 @@ void processData(unsigned long address){
     }
     stats->misses++;
 
+    for (unsigned long i=0;i<associativity;i++){
+        if(cache[setIndex][i].valid==false){
+            cache[setIndex][i].valid = true;
+            cache[setIndex][i].tag = tag;
+            LRU_timer++;
+            cache[setIndex][i].time = LRU_timer;
+
+            return;
+
+        }
+    }
+
+    
+
 
     
     
