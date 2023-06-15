@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include "cachelab.h"
 
 #define DECIMAL_BASE 10
 #define LINELEN  21
@@ -25,7 +26,27 @@ unsigned long associativity;
 unsigned long set_bits;
 unsigned long block_bits;
 char *file_name = NULL;
+csim_stats_t *stats;
 
+/**
+ * @brief Initialize statistics
+*/
+void initStats(void){
+    stats = malloc(sizeof(csim_stats_t));
+    stats->hits=0;
+    stats->misses = 0;
+    stats->evictions = 0;
+    stats->dirty_bytes = 0;
+    stats->dirty_evictions = 0;
+
+    
+}
+/**
+ * @brief free stats
+*/
+void freeStats(void){
+    free(stats);
+}
 
 /**
  * Initialize Cache
@@ -40,10 +61,12 @@ void initCache(void){
         cache[i] = malloc(associativity * sizeof(cache_line));
         for (unsigned long j=0;j<associativity;j++){
             cache[i][j].dirty=false;
-            cache[i][j].tag = -1;
+            cache[i][j].tag = 0;
             cache[i][j].count = 0;
         }
     }
+
+
     
 
 
@@ -58,6 +81,10 @@ void freeCache(void){
     }
 
     free(cache);
+
+}
+
+void processData(void){
 
 }
 
@@ -163,9 +190,12 @@ int main(int argc, char*argv[]){
         }
     }
     initCache();
+    initStats();
     process_trace_file(file_name);
 
+
     freeCache();
+    freeStats();
 
 
     
