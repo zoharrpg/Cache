@@ -122,7 +122,7 @@ void processData(char operation,unsigned long address,unsigned long size){
                 stats->dirty_bytes++;
 
             }
-            else{
+            else {
                 cache[setIndex][i].dirty = false;
 
                 
@@ -180,16 +180,12 @@ void processData(char operation,unsigned long address,unsigned long size){
     cache[setIndex][min_timer_index].valid = true;
     LRU_timer++;
     cache[setIndex][min_timer_index].time = LRU_timer;
-    cache[setIndex][min_timer_index].block_range[0] = address;
+    cache[setIndex][min_timer_index].block_range[0] = (address/block_size)*block_size;
     
-    if((LONG_MAX-address)<block_size){
-        cache[setIndex][min_timer_index].block_range[1] = LONG_MAX;
+   
+    cache[setIndex][min_timer_index].block_range[1] = cache[setIndex][min_timer_index].block_range[0]+block_size;
 
-    }
-    else{
-         cache[setIndex][min_timer_index].block_range[1] = address + block_size;
 
-    }
    
     stats->evictions++;
 
