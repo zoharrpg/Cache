@@ -9,6 +9,7 @@
 #include <limits.h>
 
 #define DECIMAL_BASE 10
+#define HEX_BASE 16
 #define LINELEN  21
 
 typedef struct{
@@ -36,7 +37,7 @@ bool is_v_mode = false;
 unsigned long LRU_timer=0;
 
 bool is_in_range(unsigned long blocks[],unsigned long element){
-    return ((blocks[0] <= element) && (element < blocks[1]));
+    return ((blocks[0] <= element) && (element <= blocks[1]));
 
 }
 
@@ -102,10 +103,11 @@ void freeCache(void){
 /**
  * @brief access data and do the statistics
 */
-void processData(char operation,unsigned long address,unsigned long blockIndex){
+void processData(char operation,unsigned long address,unsigned long size){
     unsigned long tag = address >> (set_bits+block_bits);
 
     unsigned setIndex = (address >> block_bits) &  ((1<<set_bits)-1);
+    unsigned long blockIndex = address+size;
 
 
     for (unsigned long i=0;i<associativity;i++){
@@ -146,8 +148,8 @@ void processData(char operation,unsigned long address,unsigned long blockIndex){
             LRU_timer++;
             cache[setIndex][i].time = LRU_timer;
             cache[setIndex][i].dirty = false;
-            cache[setIndex][i].block_range[0] = address;
-            cache[setIndex][i].block_range[1] = address + block_size;
+            cache[setIndex][i].block_range[0] = (address/block_size)*block_size;
+            cache[setIndex][i].block_range[1] = cache[setIndex][i].block_range[0]+block_size;
             if(is_v_mode)
                 printf("miss\n");
 
@@ -221,8 +223,8 @@ int process_trace_file(const char *trace){
     int parse_error = 0;
     while (fgets(linebuf, LINELEN,tfp)){
         char operation = *strtok(linebuf," ,");
-        unsigned long address = strtoul(strtok(NULL," ,"),NULL,DECIMAL_BASE);
-        unsigned long size = strtoul(strtok(NULL," ,"),NULL,DECIMAL_BASE);
+        unsigned long address = strtoul(strtok(NULL," ,"),NULL,HEX_BASE);
+        unsigned long size = strtoul(strtok(NULL," ,"),NULL,HEX_BASE);
 
         if(is_v_mode)
                 printf("%c %lu, %lu ", operation, address, size);
