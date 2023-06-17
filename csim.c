@@ -22,11 +22,11 @@ typedef struct {
 
 cache_line **cache;
 
-unsigned long set_number;
+long set_number;
 unsigned long block_size;
-unsigned long associativity;
-unsigned long set_bits;
-unsigned long block_bits;
+long associativity;
+long set_bits;
+long block_bits;
 char *file_name = NULL;
 csim_stats_t *stats;
 bool is_v_mode = false;
@@ -58,11 +58,11 @@ void initCache(void) {
     set_number = 1 << set_bits;
     block_size = 1 << block_bits;
 
-    cache = malloc(set_number * sizeof(cache_line *));
+    cache = malloc((unsigned long)set_number * sizeof(cache_line *));
 
-    for (unsigned long i = 0; i < set_number; i++) {
-        cache[i] = malloc(associativity * sizeof(cache_line));
-        for (unsigned long j = 0; j < associativity; j++) {
+    for (long i = 0; i < set_number; i++) {
+        cache[i] = malloc((unsigned long)associativity * sizeof(cache_line));
+        for (long j = 0; j < associativity; j++) {
             cache[i][j].valid = false;
             cache[i][j].tag = 0;
             cache[i][j].time = 0;
@@ -75,7 +75,7 @@ void initCache(void) {
  * @brief cache memory
  */
 void freeCache(void) {
-    for (unsigned long i = 0; i < set_number; i++) {
+    for (long i = 0; i < set_number; i++) {
         free(cache[i]);
     }
 
@@ -91,7 +91,7 @@ void processData(char operation, unsigned long address, unsigned long size) {
     // extract bits
 
     // hits option
-    for (unsigned long i = 0; i < associativity; i++) {
+    for (long i = 0; i < associativity; i++) {
 
         if (cache[set_index][i].valid == true &&
             cache[set_index][i].tag == tag) {
@@ -116,7 +116,7 @@ void processData(char operation, unsigned long address, unsigned long size) {
     // miss part
     stats->misses++;
 
-    for (unsigned long i = 0; i < associativity; i++) {
+    for (long i = 0; i < associativity; i++) {
         if (cache[set_index][i].valid == false) {
             cache[set_index][i].valid = true;
             cache[set_index][i].tag = tag;
@@ -136,9 +136,9 @@ void processData(char operation, unsigned long address, unsigned long size) {
     // eviction operation
 
     unsigned long min = cache[set_index][0].time;
-    unsigned long min_timer_index = 0;
+    long min_timer_index = 0;
 
-    for (unsigned long i = 0; i < associativity; i++) {
+    for (long i = 0; i < associativity; i++) {
         if (cache[set_index][i].time < min) {
             min = cache[set_index][i].time;
             min_timer_index = i;
@@ -235,15 +235,15 @@ int main(int argc, char *argv[]) {
             break;
 
         case 's':
-            set_bits = strtoul(optarg, NULL, DECIMAL_BASE);
+            set_bits = strtol(optarg, NULL, DECIMAL_BASE);
             break;
 
         case 'E':
-            associativity = strtoul(optarg, NULL, DECIMAL_BASE);
+            associativity = strtol(optarg, NULL, DECIMAL_BASE);
             break;
 
         case 'b':
-            block_bits = strtoul(optarg, NULL, DECIMAL_BASE);
+            block_bits = strtol(optarg, NULL, DECIMAL_BASE);
 
             break;
 
