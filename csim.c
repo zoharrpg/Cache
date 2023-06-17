@@ -12,6 +12,9 @@
 #define HEX_BASE 16
 #define LINELEN 21
 
+/**
+ * @brief cache line
+ */
 typedef struct {
     bool valid;
     bool dirty;
@@ -81,60 +84,29 @@ void freeCache(void) {
 
     free(cache);
 }
-/**
- * @brief access data and do the statistics
- */
-void processData(char operation, unsigned long address, unsigned long size) {
-    unsigned long tag = address >> (set_bits + block_bits);
 
-    unsigned set_index = (address >> block_bits) & ((1 << set_bits) - 1);
-    // extract bits
-
-    // hits option
+long findHit(unsigned long tag, long set_index) {
     for (long i = 0; i < associativity; i++) {
 
         if (cache[set_index][i].valid == true &&
             cache[set_index][i].tag == tag) {
-            stats->hits++;
-            LRU_timer++;
-            cache[set_index][i].time = LRU_timer;
-
-            if (operation == 'S') {
-                if (cache[set_index][i].dirty == false) {
-                    stats->dirty_bytes += block_size;
-                    cache[set_index][i].dirty = true;
-                }
-            }
-
-            if (is_v_mode)
-                printf("hits\n");
-
-            return;
+            return i;
         }
     }
+    return -1;
+}
 
-    // miss part
-    stats->misses++;
-
+long findMiss(unsigned long tag, long set_index) {
     for (long i = 0; i < associativity; i++) {
-        if (cache[set_index][i].valid == false) {
-            cache[set_index][i].valid = true;
-            cache[set_index][i].tag = tag;
-            LRU_timer++;
-            cache[set_index][i].time = LRU_timer;
-            if (operation == 'S') {
-                cache[set_index][i].dirty = true;
-                stats->dirty_bytes += block_size;
-            }
-            if (is_v_mode)
-                printf("miss\n");
 
-            return;
+        if (cache[set_index][i].valid == false) {
+            return i;
         }
     }
+    return -1;
+}
 
-    // eviction operation
-
+long findEviction(unsigned long tag, long set_index) {
     unsigned long min = cache[set_index][0].time;
     long min_timer_index = 0;
 
@@ -144,23 +116,76 @@ void processData(char operation, unsigned long address, unsigned long size) {
             min_timer_index = i;
         }
     }
+    return min_timer_index;
+}
 
-    if (cache[set_index][min_timer_index].dirty) {
+/**
+ * @brief access data and do the statistics
+ */
+void processData(char operation, unsigned long address, unsigned long size) {
+    unsigned long tag = address >> (set_bits + block_bits);
+
+    long set_index =
+        (address >> block_bits) & ((1 << set_bits) - 1); // extract bits
+
+    // hits option
+    long hit_index = findHit(tag, set_index);
+
+    if (hit_index != -1) {
+        stats->hits++;
+        LRU_timer++;
+        cache[set_index][hit_index].time = LRU_timer;
+
+        if (operation == 'S') {
+            if (cache[set_index][hit_index].dirty == false) {
+                stats->dirty_bytes += block_size;
+                cache[set_index][hit_index].dirty = true;
+            }
+        }
+
+        if (is_v_mode)
+            printf("hits\n");
+
+        return;
+    }
+    stats->misses++;
+
+    long miss_index = findMiss(tag, set_index);
+
+    if (miss_index != -1) {
+        cache[set_index][miss_index].valid = true;
+        cache[set_index][miss_index].tag = tag;
+        LRU_timer++;
+        cache[set_index][miss_index].time = LRU_timer;
+        if (operation == 'S') {
+            cache[set_index][miss_index].dirty = true;
+            stats->dirty_bytes += block_size;
+        }
+        if (is_v_mode)
+            printf("miss\n");
+
+        return;
+    }
+
+    // eviction operation
+    long eviction_index = findEviction(tag, set_index);
+
+    if (cache[set_index][eviction_index].dirty) {
         stats->dirty_evictions += block_size;
         stats->dirty_bytes -= block_size;
     }
     if (operation == 'S') {
-        cache[set_index][min_timer_index].dirty = true;
+        cache[set_index][eviction_index].dirty = true;
         stats->dirty_bytes += block_size;
 
     } else {
-        cache[set_index][min_timer_index].dirty = false;
+        cache[set_index][eviction_index].dirty = false;
     }
 
-    cache[set_index][min_timer_index].tag = tag;
-    cache[set_index][min_timer_index].valid = true;
+    cache[set_index][eviction_index].tag = tag;
+    cache[set_index][eviction_index].valid = true;
     LRU_timer++;
-    cache[set_index][min_timer_index].time = LRU_timer;
+    cache[set_index][eviction_index].time = LRU_timer;
 
     stats->evictions++;
 
