@@ -166,10 +166,30 @@ void processData(char operation,unsigned long address,unsigned long size){
         }
     }
 
-    if(operation=='S'&&cache[setIndex][min_timer_index].dirty){
-        stats->dirty_evictions++;
-        stats->dirty_bytes--;
-        cache[setIndex][min_timer_index].dirty=false;
+     if(cache[setIndex][min_timer_index].dirty){
+        stats->dirty_evictions+=block_size;
+        stats->dirty_bytes-=block_size;
+        
+        
+         if(operation == 'S'){
+                 cache[setIndex][min_timer_index].dirty = true;
+                 stats->dirty_bytes+=block_size;
+
+                
+            }else{
+                cache[setIndex][min_timer_index].dirty =false;
+            }
+
+
+    }else{
+        if(operation == 'S'){
+                 cache[setIndex][min_timer_index].dirty = true;
+                 stats->dirty_bytes+=block_size;
+
+                
+            }else{
+                cache[setIndex][min_timer_index].dirty =false;
+            }
 
     }
 
