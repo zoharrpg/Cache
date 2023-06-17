@@ -17,7 +17,6 @@ typedef struct{
     bool dirty;
     unsigned long tag;
     unsigned long time;
-    unsigned long block_range [2];
 
 }cache_line;
 
@@ -35,11 +34,6 @@ csim_stats_t *stats;
 bool is_v_mode = false;
 
 unsigned long LRU_timer=0;
-
-bool is_in_range(unsigned long blocks[],unsigned long element){
-    return ((blocks[0] <= element) && (element <= blocks[1]));
-
-}
 
 /**
  * @brief Initialize statistics
@@ -77,8 +71,6 @@ void initCache(void){
             cache[i][j].tag = 0;
             cache[i][j].time = 0;
             cache[i][j].dirty=false;
-            cache[i][j].block_range[0] = 0;
-            cache[i][j].block_range[1]=0;
         }
     }
 
@@ -107,23 +99,22 @@ void processData(char operation,unsigned long address,unsigned long size){
     unsigned long tag = address >> (set_bits+block_bits);
 
     unsigned setIndex = (address >> block_bits) &  ((1<<set_bits)-1);
-    unsigned long blockIndex = address+size;
+    //extract bits
 
-
+    // hits option
     for (unsigned long i=0;i<associativity;i++){
 
-        if(cache[setIndex][i].valid==true && cache[setIndex][i].tag == tag && is_in_range(cache[setIndex][i].block_range,blockIndex)){
+        if(cache[setIndex][i].valid==true && cache[setIndex][i].tag == tag){
             stats->hits++;
             LRU_timer++;
             cache[setIndex][i].time = LRU_timer;
 
             if(operation == 'S'){
-                cache[setIndex][i].dirty = true;
-                stats->dirty_bytes++;
+                if(cache[setIndex][i].dirty==false){
+                    stats->dirty_bytes+=block_size;
+                    cache[setIndex][i].dirty=true;
 
-            }
-            else {
-                cache[setIndex][i].dirty = false;
+                }
 
                 
 
@@ -139,6 +130,9 @@ void processData(char operation,unsigned long address,unsigned long size){
 
         }
     }
+    
+
+    // miss part
     stats->misses++;
 
     for (unsigned long i=0;i<associativity;i++){
@@ -147,9 +141,11 @@ void processData(char operation,unsigned long address,unsigned long size){
             cache[setIndex][i].tag = tag;
             LRU_timer++;
             cache[setIndex][i].time = LRU_timer;
-            cache[setIndex][i].dirty = false;
-            cache[setIndex][i].block_range[0] = (address/block_size)*block_size;
-            cache[setIndex][i].block_range[1] = cache[setIndex][i].block_range[0]+block_size;
+           if(operation == 'S'){
+                 cache[setIndex][i].dirty = true;
+                 stats->dirty_bytes+=block_size;
+                
+            }
             if(is_v_mode)
                 printf("miss\n");
 
@@ -157,6 +153,8 @@ void processData(char operation,unsigned long address,unsigned long size){
 
         }
     }
+
+    // eviction operation
 
     unsigned long min = cache[setIndex][0].time;
     unsigned long min_timer_index = 0;
@@ -180,10 +178,6 @@ void processData(char operation,unsigned long address,unsigned long size){
     cache[setIndex][min_timer_index].valid = true;
     LRU_timer++;
     cache[setIndex][min_timer_index].time = LRU_timer;
-    cache[setIndex][min_timer_index].block_range[0] = (address/block_size)*block_size;
-    
-   
-    cache[setIndex][min_timer_index].block_range[1] = cache[setIndex][min_timer_index].block_range[0]+block_size;
 
 
    
