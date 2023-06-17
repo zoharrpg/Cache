@@ -119,55 +119,32 @@ long findEviction(unsigned long tag, long set_index) {
     return min_timer_index;
 }
 
-/**
- * @brief access data and do the statistics
- */
-void processData(char operation, unsigned long address, unsigned long size) {
-    unsigned long tag = address >> (set_bits + block_bits);
+void handleHit(long set_index, char operation, long hit_index) {
+    stats->hits++;
+    LRU_timer++;
+    cache[set_index][hit_index].time = LRU_timer;
 
-    long set_index =
-        (address >> block_bits) & ((1 << set_bits) - 1); // extract bits
-
-    // hits option
-    long hit_index = findHit(tag, set_index);
-
-    if (hit_index != -1) {
-        stats->hits++;
-        LRU_timer++;
-        cache[set_index][hit_index].time = LRU_timer;
-
-        if (operation == 'S') {
-            if (cache[set_index][hit_index].dirty == false) {
-                stats->dirty_bytes += block_size;
-                cache[set_index][hit_index].dirty = true;
-            }
-        }
-
-        if (is_v_mode)
-            printf("hits\n");
-
-        return;
-    }
-    stats->misses++;
-
-    long miss_index = findMiss(tag, set_index);
-
-    if (miss_index != -1) {
-        cache[set_index][miss_index].valid = true;
-        cache[set_index][miss_index].tag = tag;
-        LRU_timer++;
-        cache[set_index][miss_index].time = LRU_timer;
-        if (operation == 'S') {
-            cache[set_index][miss_index].dirty = true;
+    if (operation == 'S') {
+        if (cache[set_index][hit_index].dirty == false) {
             stats->dirty_bytes += block_size;
+            cache[set_index][hit_index].dirty = true;
         }
-        if (is_v_mode)
-            printf("miss\n");
-
-        return;
     }
+}
 
-    // eviction operation
+void handleMiss(long set_index, unsigned long tag, char operation,
+                long miss_index) {
+    cache[set_index][miss_index].valid = true;
+    cache[set_index][miss_index].tag = tag;
+    LRU_timer++;
+    cache[set_index][miss_index].time = LRU_timer;
+    if (operation == 'S') {
+        cache[set_index][miss_index].dirty = true;
+        stats->dirty_bytes += block_size;
+    }
+}
+
+void handleEviction(long set_index, unsigned long tag, char operation) {
     long eviction_index = findEviction(tag, set_index);
 
     if (cache[set_index][eviction_index].dirty) {
@@ -188,6 +165,44 @@ void processData(char operation, unsigned long address, unsigned long size) {
     cache[set_index][eviction_index].time = LRU_timer;
 
     stats->evictions++;
+}
+
+/**
+ * @brief access data and do the statistics
+ */
+void processData(char operation, unsigned long address, unsigned long size) {
+    unsigned long tag = address >> (set_bits + block_bits);
+
+    long set_index =
+        (address >> block_bits) & ((1 << set_bits) - 1); // extract bits
+
+    // hits option
+    long hit_index = findHit(tag, set_index);
+
+    if (hit_index != -1) {
+        handleHit(set_index, operation, hit_index);
+
+        if (is_v_mode)
+            printf("hits\n");
+
+        return;
+    }
+
+    stats->misses++;
+
+    long miss_index = findMiss(tag, set_index);
+
+    if (miss_index != -1) {
+        handleMiss(set_index, tag, operation, miss_index);
+
+        if (is_v_mode)
+            printf("miss\n");
+
+        return;
+    }
+
+    // eviction operation
+    handleEviction(set_index, tag, operation);
 
     if (is_v_mode)
         printf("eviction\n");
