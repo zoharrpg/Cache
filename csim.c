@@ -98,21 +98,21 @@ void freeCache(void){
 void processData(char operation,unsigned long address,unsigned long size){
     unsigned long tag = address >> (set_bits+block_bits);
 
-    unsigned setIndex = (address >> block_bits) &  ((1<<set_bits)-1);
+    unsigned set_index = (address >> block_bits) &  ((1<<set_bits)-1);
     //extract bits
 
     // hits option
     for (unsigned long i=0;i<associativity;i++){
 
-        if(cache[setIndex][i].valid==true && cache[setIndex][i].tag == tag){
+        if(cache[set_index][i].valid==true && cache[set_index][i].tag == tag){
             stats->hits++;
             LRU_timer++;
-            cache[setIndex][i].time = LRU_timer;
+            cache[set_index][i].time = LRU_timer;
 
             if(operation == 'S'){
-                if(cache[setIndex][i].dirty==false){
+                if(cache[set_index][i].dirty==false){
                     stats->dirty_bytes+=block_size;
-                    cache[setIndex][i].dirty=true;
+                    cache[set_index][i].dirty=true;
 
                 }
 
@@ -136,13 +136,13 @@ void processData(char operation,unsigned long address,unsigned long size){
     stats->misses++;
 
     for (unsigned long i=0;i<associativity;i++){
-        if(cache[setIndex][i].valid==false){
-            cache[setIndex][i].valid = true;
-            cache[setIndex][i].tag = tag;
+        if(cache[set_index][i].valid==false){
+            cache[set_index][i].valid = true;
+            cache[set_index][i].tag = tag;
             LRU_timer++;
-            cache[setIndex][i].time = LRU_timer;
+            cache[set_index][i].time = LRU_timer;
            if(operation == 'S'){
-                 cache[setIndex][i].dirty = true;
+                 cache[set_index][i].dirty = true;
                  stats->dirty_bytes+=block_size;
                 
             }
@@ -156,48 +156,48 @@ void processData(char operation,unsigned long address,unsigned long size){
 
     // eviction operation
 
-    unsigned long min = cache[setIndex][0].time;
+    unsigned long min = cache[set_index][0].time;
     unsigned long min_timer_index = 0;
 
     for (unsigned long i =0;i<associativity;i++){
-        if(cache[setIndex][i].time < min){
-            min = cache[setIndex][i].time;
+        if(cache[set_index][i].time < min){
+            min = cache[set_index][i].time;
             min_timer_index = i;
         }
     }
 
-     if(cache[setIndex][min_timer_index].dirty){
+     if(cache[set_index][min_timer_index].dirty){
         stats->dirty_evictions+=block_size;
         stats->dirty_bytes-=block_size;
         
         
          if(operation == 'S'){
-                 cache[setIndex][min_timer_index].dirty = true;
+                 cache[set_index][min_timer_index].dirty = true;
                  stats->dirty_bytes+=block_size;
 
                 
             }else{
-                cache[setIndex][min_timer_index].dirty =false;
+                cache[set_index][min_timer_index].dirty =false;
             }
 
 
     }else{
         if(operation == 'S'){
-                 cache[setIndex][min_timer_index].dirty = true;
+                 cache[set_index][min_timer_index].dirty = true;
                  stats->dirty_bytes+=block_size;
 
                 
             }else{
-                cache[setIndex][min_timer_index].dirty =false;
+                cache[set_index][min_timer_index].dirty =false;
             }
 
     }
 
 
-    cache[setIndex][min_timer_index].tag = tag;
-    cache[setIndex][min_timer_index].valid = true;
+    cache[set_index][min_timer_index].tag = tag;
+    cache[set_index][min_timer_index].valid = true;
     LRU_timer++;
-    cache[setIndex][min_timer_index].time = LRU_timer;
+    cache[set_index][min_timer_index].time = LRU_timer;
 
 
    
