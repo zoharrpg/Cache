@@ -28,8 +28,8 @@ cache_line **cache;
 long set_number;
 unsigned long block_size;
 long associativity;
-long set_bits;
-long block_bits;
+long set_bits = -1;
+long block_bits = -1;
 char *file_name = NULL;
 csim_stats_t *stats;
 bool is_v_mode = false;
@@ -240,7 +240,7 @@ int process_trace_file(const char *trace) {
  * @brief print help message
  */
 void printHelp(void) {
-    printf("Mandatory arguments missing or zero.\n");
+    // printf("Mandatory arguments missing or zero.\n");
     printf("Usage: ./csim [-v] -s <s> -b <b> -E <E> -t <trace>\n");
     printf("       ./csim -h\n");
     printf("    -h          Print this help message and exit\n");
@@ -292,23 +292,40 @@ int main(int argc, char *argv[]) {
             break;
 
         case ':':
-            printf("This is : option\n");
+            printf("Mandatory arguments missing or zero.\n");
             printHelp();
+            exit(1);
             break;
 
         case '?':
-            printf("This is ? option\n");
+            printf("Error while parsing arguments.");
             printHelp();
+            exit(1);
 
             break;
 
         default:
             printf("This is defalut\n");
             printHelp();
+            exit(1);
 
             break;
         }
     }
+
+    if (set_bits == -1 || associativity == -1 || block_bits == -1 ||
+        file_name == NULL) {
+        printf("Mandatory arguments missing or zero.\n");
+        printHelp();
+        exit(1);
+    }
+
+    if (set_bits < 0 || block_bits < 0 || set_bits + block_bits > 63) {
+        printf("Error: s + b is too large (s = %lu, b = %lu)\n", set_bits,
+               block_bits);
+        exit(1);
+    }
+
     initCache();
     initStats();
     process_trace_file(file_name);
