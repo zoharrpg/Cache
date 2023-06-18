@@ -8,9 +8,9 @@
 #include <string.h>
 #include <unistd.h>
 
+#define LINELEN 1000
 #define DECIMAL_BASE 10
 #define HEX_BASE 16
-#define LINELEN 21
 
 /**
  * @brief cache line
@@ -231,14 +231,29 @@ int process_trace_file(const char *trace) {
     FILE *tfp = fopen(trace, "rt");
     if (!tfp) {
         fprintf(stderr, "Error opening '%s': %s\n", trace, strerror(errno));
-        return 1;
+        exit(1);
     }
     char linebuf[LINELEN];
     int parse_error = 0;
     while (fgets(linebuf, LINELEN, tfp)) {
-        char operation = *strtok(linebuf, " ,");
-        unsigned long address = strtoul(strtok(NULL, " ,"), NULL, HEX_BASE);
-        unsigned long size = strtoul(strtok(NULL, " ,"), NULL, HEX_BASE);
+        if (linebuf[0] != 'S' && linebuf[0] != 'L') {
+            printf("%c\n", linebuf[0]);
+            printf("Invalid operation in trace file\n");
+
+            exit(1);
+        }
+
+        char operation = linebuf[0];
+
+        unsigned long address;
+
+        unsigned long size;
+
+        int ret = sscanf(linebuf + 1, " %lx,%lu", &address, &size);
+        if (ret != 2) {
+            printf("Error reading trace file\n");
+            exit(1);
+        }
 
         if (is_v_mode)
             printf("%c %lu, %lu ", operation, address, size);
