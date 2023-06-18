@@ -238,7 +238,7 @@ int process_trace_file(const char *trace) {
     while (fgets(linebuf, LINELEN, tfp)) {
         if (linebuf[0] != 'S' && linebuf[0] != 'L') {
             printf("%c\n", linebuf[0]);
-            printf("Invalid operation in trace file\n");
+            printf("Invalid operation or address in trace file\n");
 
             exit(1);
         }
@@ -252,6 +252,10 @@ int process_trace_file(const char *trace) {
         int ret = sscanf(linebuf + 1, " %lx,%lu", &address, &size);
         if (ret != 2) {
             printf("Error reading trace file\n");
+            exit(1);
+        }
+        if (size > 64) {
+            printf("Invalid size\n");
             exit(1);
         }
 
