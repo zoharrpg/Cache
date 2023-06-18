@@ -27,9 +27,9 @@ cache_line **cache;
 
 long set_number;
 unsigned long block_size;
-long associativity;
-long set_bits = -1;
-long block_bits = -1;
+long associativity = 0;
+long set_bits;
+long block_bits;
 char *file_name = NULL;
 csim_stats_t *stats;
 bool is_v_mode = false;
@@ -65,6 +65,7 @@ void initCache(void) {
 
     for (long i = 0; i < set_number; i++) {
         cache[i] = malloc((unsigned long)associativity * sizeof(cache_line));
+
         for (long j = 0; j < associativity; j++) {
             cache[i][j].valid = false;
             cache[i][j].tag = 0;
@@ -240,7 +241,6 @@ int process_trace_file(const char *trace) {
  * @brief print help message
  */
 void printHelp(void) {
-    // printf("Mandatory arguments missing or zero.\n");
     printf("Usage: ./csim [-v] -s <s> -b <b> -E <E> -t <trace>\n");
     printf("       ./csim -h\n");
     printf("    -h          Print this help message and exit\n");
@@ -313,8 +313,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if (set_bits == -1 || associativity == -1 || block_bits == -1 ||
-        file_name == NULL) {
+    if (associativity == 0 || file_name == NULL) {
         printf("Mandatory arguments missing or zero.\n");
         printHelp();
         exit(1);
@@ -323,6 +322,11 @@ int main(int argc, char *argv[]) {
     if (set_bits < 0 || block_bits < 0 || set_bits + block_bits > 63) {
         printf("Error: s + b is too large (s = %lu, b = %lu)\n", set_bits,
                block_bits);
+        exit(1);
+    }
+    if (associativity < 1) {
+
+        printf("Failed to allocate memory\n");
         exit(1);
     }
 
