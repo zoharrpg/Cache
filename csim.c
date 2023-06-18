@@ -8,7 +8,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#define LINELEN 1000
+#define LINELEN 22
 #define DECIMAL_BASE 10
 #define HEX_BASE 16
 
