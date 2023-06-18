@@ -41,6 +41,10 @@ unsigned long LRU_timer = 0;
  */
 void initStats(void) {
     stats = malloc(sizeof(csim_stats_t));
+    if (stats == NULL) {
+        printf("Failed to allocate memory\n");
+        exit(1);
+    }
     stats->hits = 0;
     stats->misses = 0;
     stats->evictions = 0;
@@ -62,9 +66,17 @@ void initCache(void) {
     block_size = 1 << block_bits;
 
     cache = malloc((unsigned long)set_number * sizeof(cache_line *));
+    if (cache == NULL) {
+        printf("Failed to allocate memory\n");
+        exit(1);
+    }
 
     for (long i = 0; i < set_number; i++) {
         cache[i] = malloc((unsigned long)associativity * sizeof(cache_line));
+        if (cache == NULL) {
+            printf("Failed to allocate memory\n");
+            exit(1);
+        }
 
         for (long j = 0; j < associativity; j++) {
             cache[i][j].valid = false;
