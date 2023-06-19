@@ -142,11 +142,20 @@ static void transpose_submit(size_t M, size_t N, double A[N][M], double B[M][N],
             }
         }
 
-    }
-    else if(M == 64 && N == 64){
-        
-    }
-    else {
+    } else if (M == 1024 && N == 1024) {
+        for (size_t i = 0; i < N; i += 64) {
+
+            for (size_t j = 0; j < M; j += 8) {
+                for (size_t k = i; k < i + 64; k++) {
+                    for (size_t l = j; l < j + 8; l++) {
+
+                        B[l][k] = A[k][l];
+                    }
+                }
+            }
+        }
+
+    } else {
         trans_tmp(M, N, A, B, tmp);
     }
 }
