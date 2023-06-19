@@ -26,7 +26,7 @@
  *     other tricks to hide array data in other forms of local or global memory.
  *
  * TODO: fill in your name and Andrew ID below.
- * @author Your Name <andrewid@andrew.cmu.edu>
+ * @author Junshang Jia <junshanj@andrew.cmu.edu>
  */
 
 #include <assert.h>
@@ -124,10 +124,31 @@ static void trans_tmp(size_t M, size_t N, double A[N][M], double B[M][N],
  */
 static void transpose_submit(size_t M, size_t N, double A[N][M], double B[M][N],
                              double tmp[TMPCOUNT]) {
-    if (M == N)
-        trans_basic(M, N, A, B, tmp);
-    else
+
+    if (M == 32 && N == 32) {
+
+        for (size_t i = 0; i < N; i += 8) {
+            for (size_t j = 0; j < M; j += 8) {
+                for (size_t x = i; x < i + 8; x++) {
+                    for (size_t y = j; y < j + 8; y++) {
+                        if (x != y) {
+                            B[y][x] = A[x][y];
+                        }
+                    }
+                    if (i == j) {
+                        B[x][x] = A[x][x];
+                    }
+                }
+            }
+        }
+
+    }
+    else if(M == 64 && N == 64){
+        
+    }
+    else {
         trans_tmp(M, N, A, B, tmp);
+    }
 }
 
 /**
