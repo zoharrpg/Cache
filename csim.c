@@ -1,6 +1,6 @@
 /**
  *  A cache simulator that gives the statistics of hits, misses,
- * evictions, dirty bytes, and dirty evictions。 This command line program
+ * evictions dirty bytes, and dirty evictions. This command line program
  * also handle invalid input and invalid address operation
  *
  */
