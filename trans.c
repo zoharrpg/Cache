@@ -148,7 +148,6 @@ static void transpose_submit(size_t M, size_t N, double A[N][M], double B[M][N],
             for (size_t j = 0; j < M; j += 8) {
                 for (size_t k = i; k < i + 64; k++) {
                     for (size_t l = j; l < j + 8; l++) {
-
                         B[l][k] = A[k][l];
                     }
                 }
